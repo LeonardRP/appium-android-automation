@@ -36,4 +36,4 @@ Logout
 ## Run tests
 
 npm install
-npx wdio run wdio.conf.js
+npx wdio run wdio.conf.js --spec ./test/specs/flow.e2e.js
