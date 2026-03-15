@@ -37,3 +37,7 @@ Logout
 
 npm install
 npx wdio run wdio.conf.js --spec ./test/specs/flow.e2e.js
+
+## Credits
+
+This project uses and automates the application from [My Demo App RN](https://github.com/saucelabs/my-demo-app-rn) by Sauce Labs.
