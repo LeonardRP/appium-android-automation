@@ -297,4 +297,9 @@ export const config = {
     */
     // afterAssertion: function(params) {
     // }
+    afterTest: async function (test, context, { error }) {
+        if (error) {
+            await browser.saveScreenshot(`./screenshots/${test.title}.png`)
+        }
+    }
 }
