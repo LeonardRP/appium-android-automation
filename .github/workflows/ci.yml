@@ -9,6 +9,8 @@ on:
 jobs:
   android-tests:
     runs-on: ubuntu-latest
+    env:
+      ANDROID_EMULATOR_WAIT_TIME_BEFORE_KILL: 120  # dá mais tempo pro boot do emulador
 
     steps:
       # 1. Checkout do repositório
@@ -25,34 +27,24 @@ jobs:
       - name: Install project dependencies
         run: npm ci
 
-      # 4. Instalar Appium globalmente e UIAutomator2 driver
+      # 4. Instalar Appium e driver UIAutomator2
       - name: Install Appium and UIAutomator2 driver
         run: |
           npm install -g appium appium-doctor
           appium driver install uiautomator2
 
-      # 5. Setup Android Emulator e boot
+      # 5. Setup Android Emulator sem Play Store
       - name: Setup Android Emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 33
-          target: google_apis
+          target: google_apis       # sem Play Store, mais leve
           arch: x86_64
           force-avd-creation: true
-          emulator-options: -no-window -no-audio -gpu swiftshader_indirect
-          script: |
-            echo "Waiting for emulator to boot..."
-            adb wait-for-device
-            bootanim=""
-            until [[ "$bootanim" =~ "stopped" ]]; do
-              bootanim=$(adb -e shell getprop init.svc.bootanim 2>&1 &)
-              sleep 2
-            done
-            adb devices
-            echo "Emulator booted successfully!"
+          emulator-options: -no-window -no-audio -gpu swiftshader_indirect -no-snapshot-load
 
       # 6. Verificar Appium e Android
-      - name: Verify Appium and Android environment
+      - name: Verify Appium and Android
         run: |
           appium-doctor
           appium --version
@@ -60,11 +52,11 @@ jobs:
           echo "Installed Appium drivers:"
           appium driver list --installed
 
-      # 7. Run WebDriverIO tests (Appium Service cuida do start/stop do Appium)
+      # 7. Rodar testes com WebDriverIO
       - name: Run WebDriverIO tests
         run: npx wdio run wdio.conf.js --spec ./test/specs/flow.e2e.js
 
-      # 8. Upload test reports
+      # 8. Upload dos relatórios
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
