@@ -23,27 +23,35 @@ jobs:
 
       # 3. Instalar dependências do projeto
       - name: Install project dependencies
-        run: npm install
+        run: npm ci
 
-      # 4. Instalar Appium globalmente
-      - name: Install Appium and Appium doctor
-        run: npm install -g appium appium-doctor
+      # 4. Instalar Appium globalmente e UIAutomator2 driver
+      - name: Install Appium and UIAutomator2 driver
+        run: |
+          npm install -g appium appium-doctor
+          appium driver install uiautomator2
 
-      # 5. Instalar driver UIAutomator2
-      - name: Install Appium UIAutomator2 driver
-        run: appium driver install uiautomator2
-
-      # 6. Instalar Android SDK e criar emulador
-      - name: Setup Android SDK and emulator
+      # 5. Setup Android Emulator e boot
+      - name: Setup Android Emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 33
-          target: default
+          target: google_apis
           arch: x86_64
           force-avd-creation: true
-          script: echo "skip"
+          emulator-options: -no-window -no-audio -gpu swiftshader_indirect
+          script: |
+            echo "Waiting for emulator to boot..."
+            adb wait-for-device
+            bootanim=""
+            until [[ "$bootanim" =~ "stopped" ]]; do
+              bootanim=$(adb -e shell getprop init.svc.bootanim 2>&1 &)
+              sleep 2
+            done
+            adb devices
+            echo "Emulator booted successfully!"
 
-      # 7. Verificar Appium e Android
+      # 6. Verificar Appium e Android
       - name: Verify Appium and Android environment
         run: |
           appium-doctor
@@ -52,18 +60,11 @@ jobs:
           echo "Installed Appium drivers:"
           appium driver list --installed
 
-      # 8. Start Appium server in background
-      - name: Start Appium server
-        run: |
-          nohup appium --port 4724 > appium.log 2>&1 &
-          echo "Waiting for Appium to start..."
-          sleep 15  # garante que Appium iniciou
-
-      # 9. Run WebDriverIO tests
+      # 7. Run WebDriverIO tests (Appium Service cuida do start/stop do Appium)
       - name: Run WebDriverIO tests
         run: npx wdio run wdio.conf.js --spec ./test/specs/flow.e2e.js
 
-      # 10. Upload test reports
+      # 8. Upload test reports
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
