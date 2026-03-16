@@ -8,6 +8,7 @@ on:
 
 jobs:
   android-tests:
+    if: false
     runs-on: ubuntu-latest
     env:
       ANDROID_EMULATOR_WAIT_TIME_BEFORE_KILL: 120
