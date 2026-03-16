@@ -11,24 +11,51 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout do repositório
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # 2. Setup Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '20'
 
-      - name: Install dependencies
+      # 3. Instalar dependências do projeto
+      - name: Install project dependencies
         run: npm install
 
+      # 4. Instalar Appium globalmente
+      - name: Install Appium
+        run: npm install -g appium appium-doctor
+
+      # 5. Instalar Android SDK e ferramentas necessárias
+      - name: Setup Android SDK
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          target: default
+          arch: x86_64
+          force-avd-creation: true
+
+      # 6. Verificar Appium e ambiente
+      - name: Verify Appium and Android environment
+        run: |
+          appium-doctor
+          appium --version
+          adb --version
+
+      # 7. Iniciar servidor Appium em background
       - name: Start Appium server
         run: |
-          appium --port 4724
+          nohup appium --port 4724 > appium.log 2>&1 &
+          sleep 10  # espera o servidor iniciar
 
+      # 8. Roda os testes WebDriverIO
       - name: Run WebDriverIO tests
         run: npx wdio run wdio.conf.js --spec ./test/specs/flow.e2e.js
 
+      # 9. Upload de relatórios
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
