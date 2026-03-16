@@ -10,10 +10,10 @@ jobs:
   android-tests:
     runs-on: ubuntu-latest
     env:
-      ANDROID_EMULATOR_WAIT_TIME_BEFORE_KILL: 120  # dá mais tempo pro boot do emulador
+      ANDROID_EMULATOR_WAIT_TIME_BEFORE_KILL: 120
 
     steps:
-      # 1. Checkout do repositório
+      # 1. Checkout
       - name: Checkout repository
         uses: actions/checkout@v3
 
@@ -23,11 +23,11 @@ jobs:
         with:
           node-version: '20'
 
-      # 3. Instalar dependências do projeto
+      # 3. Install dependencies
       - name: Install project dependencies
         run: npm ci
 
-      # 4. Instalar Appium e driver UIAutomator2
+      # 4. Install Appium and UIAutomator2 driver
       - name: Install Appium and UIAutomator2 driver
         run: |
           npm install -g appium appium-doctor
@@ -38,12 +38,13 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 33
-          target: google_apis       # sem Play Store, mais leve
+          target: google_apis
           arch: x86_64
           force-avd-creation: true
           emulator-options: -no-window -no-audio -gpu swiftshader_indirect -no-snapshot-load
+          script: echo "skip"  # <---- O parâmetro script é obrigatório
 
-      # 6. Verificar Appium e Android
+      # 6. Verify Appium and Android
       - name: Verify Appium and Android
         run: |
           appium-doctor
@@ -52,11 +53,11 @@ jobs:
           echo "Installed Appium drivers:"
           appium driver list --installed
 
-      # 7. Rodar testes com WebDriverIO
+      # 7. Run WebDriverIO tests
       - name: Run WebDriverIO tests
         run: npx wdio run wdio.conf.js --spec ./test/specs/flow.e2e.js
 
-      # 8. Upload dos relatórios
+      # 8. Upload test reports
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
