@@ -37,6 +37,7 @@ jobs:
           target: default
           arch: x86_64
           force-avd-creation: true
+          script: echo "skip"  # necessário para não quebrar
 
       # 6. Verificar Appium e ambiente
       - name: Verify Appium and Android environment
