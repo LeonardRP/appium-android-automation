@@ -111,6 +111,8 @@ It automatically:
 - Runs WebDriverIO tests
 - Uploads test reports as artifacts (wdio-reports)
 
+⚠️ **Note:** Due to emulator boot limitations on GitHub Actions, running the Android emulator in CI is currently unreliable. The workflow may fail at starting the emulator. Tests have been verified locally and can be run manually.
+
 Workflow is triggered on:
 
 - Push to main
